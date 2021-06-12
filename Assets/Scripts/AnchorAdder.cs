@@ -1,9 +1,12 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.UI;
 using Microsoft.Azure.SpatialAnchors;
 using Microsoft.Azure.SpatialAnchors.Unity;
 using Microsoft.Azure.SpatialAnchors.Unity.Examples;
+using System;
 
 public class AnchorAdder : InputInteractionBase
 {
@@ -16,9 +19,12 @@ public class AnchorAdder : InputInteractionBase
     bool isPlacingObject = false;
     GameObject spawnedObject = null;
     CloudSpatialAnchor currentCloudAnchor;
+    public InputField text;
+    bool isErrorActive = false;
 
     public override void Start()
     {
+        text.text = "OOF";
         base.Start();
         CloudManager.SessionUpdated += CloudManager_SessionUpdated;
         CloudManager.AnchorLocated += CloudManager_AnchorLocated;
@@ -36,6 +42,7 @@ public class AnchorAdder : InputInteractionBase
             await CloudManager.CreateSessionAsync();
         }
         await CloudManager.StartSessionAsync();
+        text.text = CloudManager.IsSessionStarted.ToString();
         isPlacingObject = true;
     }
 
@@ -141,6 +148,7 @@ public class AnchorAdder : InputInteractionBase
         {
             // Use factory method to create
             spawnedObject = SpawnNewAnchoredObject(worldPos, worldRot, currentCloudAnchor);
+            Save();
         }
         else
         {
@@ -170,6 +178,12 @@ public class AnchorAdder : InputInteractionBase
 
         // Return newly created object
         return newGameObject;
+    }
+
+    async void Save()
+    {
+        await SaveCurrentObjectAnchorToCloudAsync();
+        text.text = currentCloudAnchor.Identifier;
     }
 
     /// <summary>
@@ -217,10 +231,85 @@ public class AnchorAdder : InputInteractionBase
 
         // Attach a cloud-native anchor behavior to help keep cloud
         // and native anchors in sync.
-        newGameObject.AddComponent<CloudNativeAnchor>();
+        var cna = newGameObject.AddComponent<CloudNativeAnchor>();
 
         // Return created object
         return newGameObject;
+    }
+
+    async Task SaveCurrentObjectAnchorToCloudAsync()
+    {
+        // Get the cloud-native anchor behavior
+        CloudNativeAnchor cna = spawnedObject.GetComponent<CloudNativeAnchor>();
+
+        // If the cloud portion of the anchor hasn't been created yet, create it
+        if (cna.CloudAnchor == null)
+        {
+            await cna.NativeToCloud();
+        }
+
+        // Get the cloud portion of the anchor
+        CloudSpatialAnchor cloudAnchor = cna.CloudAnchor;
+
+        // In this sample app we delete the cloud anchor explicitly, but here we show how to set an anchor to expire automatically
+        cloudAnchor.Expiration = DateTimeOffset.Now.AddDays(7);
+
+        while (!CloudManager.IsReadyForCreate)
+        {
+            await Task.Delay(330);
+            float createProgress = CloudManager.SessionStatus.RecommendedForCreateProgress;
+            text.text = $"Move your device to capture more environment data: {createProgress:0%}";
+        }
+
+        bool success = false;
+
+        text.text = "Saving...";
+
+        try
+        {
+            // Actually save
+            await CloudManager.CreateAnchorAsync(cloudAnchor);
+
+            // Store
+            currentCloudAnchor = cloudAnchor;
+
+            // Success?
+            success = currentCloudAnchor != null;
+
+            if (success || !isErrorActive)
+            {
+                // Await override, which may perform additional tasks
+                // such as storing the key in the AnchorExchanger
+                await OnSaveCloudAnchorSuccessfulAsync();
+            }
+            else
+            {
+                OnSaveCloudAnchorFailed(new Exception("Failed to save, but no exception was thrown."));
+            }
+        }
+        catch (Exception ex)
+        {
+            OnSaveCloudAnchorFailed(ex);
+        }
+    }
+
+    /// <summary>
+    /// Called when a cloud anchor is saved successfully.
+    /// </summary>
+    Task OnSaveCloudAnchorSuccessfulAsync()
+    {
+        // To be overridden.
+        return Task.CompletedTask;
+    }
+
+    void OnSaveCloudAnchorFailed(Exception exception)
+    {
+        // we will block the next step to show the exception message in the UI.
+        isErrorActive = true;
+        Debug.LogException(exception);
+        Debug.Log("Failed to save anchor " + exception.ToString());
+
+        UnityDispatcher.InvokeOnAppThread(() => this.text.text = string.Format("Error: {0}", exception.ToString()));
     }
 
 }
