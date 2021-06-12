@@ -523,3 +523,5 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   CloudManager: {fileID: 1952729316}
+  AnchoredObjectPrefab: {fileID: 1147623660883556, guid: e593bfccf03b6444da88c7591f906ba8,
+    type: 3}
