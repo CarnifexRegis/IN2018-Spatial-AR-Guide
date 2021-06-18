@@ -19,9 +19,10 @@ public class WayPointManager : MonoBehaviour
     [SerializeField]
     GameObject guide;
 
-    float rotationSpeed = 0.1f;
-    float movementSpeed= 0.1f;
+    float rotationSpeed = 7.0f;
+    float movementSpeed= 0.4f;
     // Start is called before the first frame update
+    float height;
     void Start()
     {
 
@@ -65,7 +66,7 @@ public class WayPointManager : MonoBehaviour
     }
     public bool WaitForPlayer() {
         //if distance to guide is too big wait for the player and look at him / Maby wave at the player
-        Vector3 dir = AR_Camera.transform.position - guide.transform.position;
+        Vector3 dir = (AR_Camera.transform.position - guide.transform.position).normalized;
         if ((dir).magnitude>1.5) {
            
            // dir.y = 0; // keep the direction strictly horizontal
@@ -78,12 +79,26 @@ public class WayPointManager : MonoBehaviour
         
     }
     public void PersueWaypoint() {
-     
-        guide.transform.position = Vector3.MoveTowards(guide.transform.position, wayPoints[wayPointIndex].transform.position, movementSpeed*Time.deltaTime);
-        if (wayPoints[wayPointIndex].transform.position.Equals(guide.transform.position))
+        Vector3 wayPoinPos = wayPoints[wayPointIndex].transform.position;
+        wayPoinPos.y+=0.3f;
+        Vector3 pos = Vector3.MoveTowards(guide.transform.position, wayPoinPos, movementSpeed*Time.deltaTime);
+        //TODO temp for plane intiation
+        //pos.y = -0.1f;
+        guide.transform.position = pos;
+
+        Vector3 dir = (guide.transform.position-wayPoinPos).normalized;
+        Quaternion rot = Quaternion.LookRotation(dir);
+        // slerp to the desired rotation over time
+          guide.transform.rotation = Quaternion.Slerp(guide.transform.rotation, rot, rotationSpeed * Time.deltaTime);
+
+
+        if (wayPoinPos.Equals(guide.transform.position))
         {
-            wayPointIndex++;
+            WaypointRached();
             //wayPointIndex %= (wayPoints.Count);
         }
+    }
+    public void WaypointRached(){
+        wayPointIndex++;
     }
 }
