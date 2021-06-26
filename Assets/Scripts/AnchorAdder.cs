@@ -215,7 +215,7 @@ public class AnchorAdder : InputInteractionBase
 
                 anchorPose = args.Anchor.GetPose();
 
-                SpawnOrMoveCurrentAnchoredObject(anchorPose.position, anchorPose.rotation);
+                SpawnOrMoveCurrentAnchoredObject(anchorPose.position, anchorPose.rotation, true);
             });
         }
     }
@@ -261,20 +261,36 @@ public class AnchorAdder : InputInteractionBase
     /// </summary>
     /// <param name="worldPos">The world position.</param>
     /// <param name="worldRot">The world rotation.</param>
-    void SpawnOrMoveCurrentAnchoredObject(Vector3 worldPos, Quaternion worldRot)
+    void SpawnOrMoveCurrentAnchoredObject(Vector3 worldPos, Quaternion worldRot, bool inNewMode = false)
     {
         // Create the object if we need to, and attach the platform appropriate
         // Anchor behavior to the spawned object
-        if (spawnedGameObject[selection] == null)
+        if(!inNewMode)
         {
-            // Use factory method to create
-            spawnedGameObject[selection] = SpawnNewAnchoredObject(worldPos, worldRot, currentCloudAnchor);
-            Save();
+            if (spawnedGameObject[selection] == null)
+            {
+                // Use factory method to create
+                spawnedGameObject[selection] = SpawnNewAnchoredObject(worldPos, worldRot, currentCloudAnchor);
+                Save();
+            }
+            else
+            {
+                // Use factory method to move
+                MoveAnchoredObject(spawnedGameObject[selection], worldPos, worldRot, currentCloudAnchor);
+            }
         }
         else
         {
-            // Use factory method to move
-            MoveAnchoredObject(spawnedGameObject[selection], worldPos, worldRot, currentCloudAnchor);
+            string key = "";
+            foreach (string keyVar in nameIDDataset.Keys) 
+            { 
+                if (nameIDDataset[keyVar] == currentCloudAnchor.Identifier)
+                {
+                    key = keyVar;
+                    break;
+                }
+            }
+            spawnedGameObject[key] = SpawnNewAnchoredObject(worldPos, worldRot, currentCloudAnchor);
         }
     }
 
