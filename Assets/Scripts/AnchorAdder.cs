@@ -27,8 +27,10 @@ public class AnchorAdder : InputInteractionBase
     public Dropdown dropdown;
     string selection;
     List<Dropdown.OptionData> dropdownOption;
-    Dictionary<string,string> nameIDDataset;
-    Dictionary<string,GameObject> spawnedGameObject;
+    Dictionary<string,string> nameIDDataset = new Dictionary<string, string>();
+    Dictionary<string,GameObject> spawnedGameObject = new Dictionary<string, GameObject>();
+    readonly List<string> anchorIdsToLocate = new List<string>();
+    CloudSpatialAnchorWatcher currentWatcher;
 
     public override void Start()
     {
@@ -42,7 +44,28 @@ public class AnchorAdder : InputInteractionBase
         CloudManager.LogDebug += CloudManager_LogDebug;
         CloudManager.Error += CloudManager_Error;
         anchorLocateCriteria = new AnchorLocateCriteria();
+        ConfigureSession();
         Setup();
+    }
+
+    private void ConfigureSession()
+    {
+        SetAnchorIdsToLocate(nameIDDataset.Values);
+    }
+
+    protected void SetAnchorIdsToLocate(IEnumerable<string> anchorIds)
+    {
+        if (anchorIds == null)
+        {
+            throw new ArgumentNullException(nameof(anchorIds));
+        }
+
+        anchorLocateCriteria.NearAnchor = new NearAnchorCriteria();
+
+        anchorIdsToLocate.Clear();
+        anchorIdsToLocate.AddRange(anchorIds);
+
+        anchorLocateCriteria.Identifiers = anchorIdsToLocate.ToArray();
     }
 
     void SaveFile()
@@ -68,6 +91,7 @@ public class AnchorAdder : InputInteractionBase
             print(json);
         }
         GetAllNames();
+        MakeDictionary();
         selection = anchorStore.anchor.name;
     }
 
@@ -78,6 +102,7 @@ public class AnchorAdder : InputInteractionBase
 
     void GetKeyIdPair(Anchor anchor)
     {
+        print(anchor.id);
         nameIDDataset.Add(anchor.name, anchor.id);
         spawnedGameObject.Add(anchor.name,null);
         foreach(Anchor a in anchor.children)
@@ -115,6 +140,19 @@ public class AnchorAdder : InputInteractionBase
         await CloudManager.StartSessionAsync();
         text.text = CloudManager.IsSessionStarted.ToString();
         isPlacingObject = true;
+        currentWatcher = CreateWatcher();
+    }
+
+    CloudSpatialAnchorWatcher CreateWatcher()
+    {
+        if ((CloudManager != null) && (CloudManager.Session != null))
+        {
+            return CloudManager.Session.CreateWatcher(anchorLocateCriteria);
+        }
+        else
+        {
+            return null;
+        }
     }
 
     // Update is called once per frame
@@ -167,7 +205,19 @@ public class AnchorAdder : InputInteractionBase
     /// <param name="args">The <see cref="AnchorLocatedEventArgs"/> instance containing the event data.</param>
     void OnCloudAnchorLocated(AnchorLocatedEventArgs args)
     {
-        // To be overridden.
+        currentCloudAnchor = args.Anchor;
+
+        if (args.Status == LocateAnchorStatus.Located)
+        {
+            UnityDispatcher.InvokeOnAppThread(() =>
+            {
+                Pose anchorPose = Pose.identity;
+
+                anchorPose = args.Anchor.GetPose();
+
+                SpawnOrMoveCurrentAnchoredObject(anchorPose.position, anchorPose.rotation);
+            });
+        }
     }
 
     /// <summary>
@@ -218,13 +268,13 @@ public class AnchorAdder : InputInteractionBase
         if (spawnedGameObject[selection] == null)
         {
             // Use factory method to create
-            spawnedObject = SpawnNewAnchoredObject(worldPos, worldRot, currentCloudAnchor);
+            spawnedGameObject[selection] = SpawnNewAnchoredObject(worldPos, worldRot, currentCloudAnchor);
             Save();
         }
         else
         {
             // Use factory method to move
-            MoveAnchoredObject(spawnedObject, worldPos, worldRot, currentCloudAnchor);
+            MoveAnchoredObject(spawnedGameObject[selection], worldPos, worldRot, currentCloudAnchor);
         }
     }
 
