@@ -7,6 +7,8 @@ using Microsoft.Azure.SpatialAnchors;
 using Microsoft.Azure.SpatialAnchors.Unity;
 using Microsoft.Azure.SpatialAnchors.Unity.Examples;
 using System;
+using System.IO;
+using System.Runtime.Serialization.Formatters.Binary;
 
 public class AnchorAdder : InputInteractionBase
 {
@@ -19,11 +21,19 @@ public class AnchorAdder : InputInteractionBase
     bool isPlacingObject = false;
     GameObject spawnedObject = null;
     CloudSpatialAnchor currentCloudAnchor;
-    public InputField text;
+    public Text text;
     bool isErrorActive = false;
+    AnchorStore anchorStore;
+    public Dropdown dropdown;
+    string selection;
+    List<Dropdown.OptionData> dropdownOption;
+    Dictionary<string,string> nameIDDataset;
+    Dictionary<string,GameObject> spawnedGameObject;
 
     public override void Start()
     {
+        print(Application.persistentDataPath);
+        SaveFile();
         text.text = "OOF";
         base.Start();
         CloudManager.SessionUpdated += CloudManager_SessionUpdated;
@@ -33,6 +43,67 @@ public class AnchorAdder : InputInteractionBase
         CloudManager.Error += CloudManager_Error;
         anchorLocateCriteria = new AnchorLocateCriteria();
         Setup();
+    }
+
+    void SaveFile()
+    {
+        if(!File.Exists(Application.persistentDataPath + "/AnchorStore.json"))
+        {
+            anchorStore = new AnchorStore();
+            anchorStore.name = "dorm";
+            anchorStore.anchor = new Anchor();
+            anchorStore.anchor.name = "Entry";
+            anchorStore.anchor.children = new List<Anchor>();
+            anchorStore.anchor.children.Add(new Anchor());
+            anchorStore.anchor.children[0].name="Door";
+            FileStream file = File.Create(Application.persistentDataPath + "/AnchorStore.json");
+            file.Close();
+            string json = JsonUtility.ToJson(anchorStore);
+            File.WriteAllText(Application.persistentDataPath + "/AnchorStore.json", json);
+        }
+        else
+        {
+            string json = File.ReadAllText(Application.persistentDataPath + "/AnchorStore.json");
+            anchorStore = JsonUtility.FromJson<AnchorStore>(json);
+            print(json);
+        }
+        GetAllNames();
+        selection = anchorStore.anchor.name;
+    }
+
+    void MakeDictionary()
+    {
+        GetKeyIdPair(anchorStore.anchor);
+    }
+
+    void GetKeyIdPair(Anchor anchor)
+    {
+        nameIDDataset.Add(anchor.name, anchor.id);
+        spawnedGameObject.Add(anchor.name,null);
+        foreach(Anchor a in anchor.children)
+        {
+            GetKeyIdPair(a);
+        }
+    }
+
+    void GetAllNames()
+    {
+        dropdownOption = new List<Dropdown.OptionData>();
+        //dropdownOption.Add(new Dropdown.OptionData(anchorStore.name));
+        RecursiveChildNameCall(dropdownOption, anchorStore.anchor);
+        dropdown.AddOptions(dropdownOption);
+        dropdown.onValueChanged.AddListener(delegate {
+            DropdownValueChanged(dropdown);
+        });
+    }
+
+    void RecursiveChildNameCall(List<Dropdown.OptionData> dropdownOption, Anchor anchor)
+    {
+        dropdownOption.Add(new Dropdown.OptionData(anchor.name));
+        foreach(Anchor a in anchor.children)
+        {
+            RecursiveChildNameCall(dropdownOption, a);
+        }
     }
 
     async void Setup()
@@ -144,7 +215,7 @@ public class AnchorAdder : InputInteractionBase
     {
         // Create the object if we need to, and attach the platform appropriate
         // Anchor behavior to the spawned object
-        if (spawnedObject == null)
+        if (spawnedGameObject[selection] == null)
         {
             // Use factory method to create
             spawnedObject = SpawnNewAnchoredObject(worldPos, worldRot, currentCloudAnchor);
@@ -184,6 +255,28 @@ public class AnchorAdder : InputInteractionBase
     {
         await SaveCurrentObjectAnchorToCloudAsync();
         text.text = currentCloudAnchor.Identifier;
+        FindAndSetAnchorId(anchorStore.anchor, currentCloudAnchor.Identifier);
+        UpdateFile();
+        // spawnedObject = null;
+    }
+
+    void FindAndSetAnchorId(Anchor anchor,string id)
+    {
+        if(anchor.name == selection)
+        {
+            anchor.id = id;
+            return;
+        }
+        foreach(Anchor a in anchor.children)
+        {
+            FindAndSetAnchorId(a,id);
+        }
+    }
+
+    void UpdateFile()
+    {
+        string json = JsonUtility.ToJson(anchorStore);
+        File.WriteAllText(Application.persistentDataPath + "/AnchorStore.json", json);
     }
 
     /// <summary>
@@ -310,6 +403,12 @@ public class AnchorAdder : InputInteractionBase
         Debug.Log("Failed to save anchor " + exception.ToString());
 
         UnityDispatcher.InvokeOnAppThread(() => this.text.text = string.Format("Error: {0}", exception.ToString()));
+    }
+
+
+    void DropdownValueChanged(Dropdown change)
+    {
+        selection = dropdownOption[change.value].text;
     }
 
 }
