@@ -19,8 +19,8 @@ public class AnchorAdder : InputInteractionBase
     public GameObject AnchoredObjectPrefab;
     protected AnchorLocateCriteria anchorLocateCriteria = null;
     bool isPlacingObject = false;
-    GameObject spawnedObject = null;
-    CloudSpatialAnchor currentCloudAnchor;
+    //GameObject spawnedObject = null;
+    //CloudSpatialAnchor currentCloudAnchor;
     public Text text;
     bool isErrorActive = false;
     AnchorStore anchorStore;
@@ -205,7 +205,7 @@ public class AnchorAdder : InputInteractionBase
     /// <param name="args">The <see cref="AnchorLocatedEventArgs"/> instance containing the event data.</param>
     void OnCloudAnchorLocated(AnchorLocatedEventArgs args)
     {
-        currentCloudAnchor = args.Anchor;
+        //currentCloudAnchor = args.Anchor;
 
         if (args.Status == LocateAnchorStatus.Located)
         {
@@ -215,7 +215,7 @@ public class AnchorAdder : InputInteractionBase
 
                 anchorPose = args.Anchor.GetPose();
 
-                SpawnOrMoveCurrentAnchoredObject(anchorPose.position, anchorPose.rotation, true);
+                SpawnOrMoveCurrentAnchoredObject(anchorPose.position, anchorPose.rotation, true, args.Anchor);
             });
         }
     }
@@ -261,7 +261,7 @@ public class AnchorAdder : InputInteractionBase
     /// </summary>
     /// <param name="worldPos">The world position.</param>
     /// <param name="worldRot">The world rotation.</param>
-    void SpawnOrMoveCurrentAnchoredObject(Vector3 worldPos, Quaternion worldRot, bool inNewMode = false)
+    void SpawnOrMoveCurrentAnchoredObject(Vector3 worldPos, Quaternion worldRot, bool inNewMode = false, CloudSpatialAnchor cloudAnchor=null)
     {
         // Create the object if we need to, and attach the platform appropriate
         // Anchor behavior to the spawned object
@@ -270,13 +270,13 @@ public class AnchorAdder : InputInteractionBase
             if (spawnedGameObject[selection] == null)
             {
                 // Use factory method to create
-                spawnedGameObject[selection] = SpawnNewAnchoredObject(worldPos, worldRot, currentCloudAnchor);
+                spawnedGameObject[selection] = SpawnNewAnchoredObject(worldPos, worldRot, cloudAnchor);
                 Save();
             }
             else
             {
                 // Use factory method to move
-                MoveAnchoredObject(spawnedGameObject[selection], worldPos, worldRot, currentCloudAnchor);
+                MoveAnchoredObject(spawnedGameObject[selection], worldPos, worldRot, spawnedGameObject[selection].GetComponent<CloudNativeAnchor>().CloudAnchor);
             }
         }
         else
@@ -284,13 +284,13 @@ public class AnchorAdder : InputInteractionBase
             string key = "";
             foreach (string keyVar in nameIDDataset.Keys) 
             { 
-                if (nameIDDataset[keyVar] == currentCloudAnchor.Identifier)
+                if (nameIDDataset[keyVar] == cloudAnchor.Identifier)
                 {
                     key = keyVar;
                     break;
                 }
             }
-            spawnedGameObject[key] = SpawnNewAnchoredObject(worldPos, worldRot, currentCloudAnchor);
+            spawnedGameObject[key] = SpawnNewAnchoredObject(worldPos, worldRot, cloudAnchor);
         }
     }
 
@@ -320,8 +320,8 @@ public class AnchorAdder : InputInteractionBase
     async void Save()
     {
         await SaveCurrentObjectAnchorToCloudAsync();
-        text.text = currentCloudAnchor.Identifier;
-        FindAndSetAnchorId(anchorStore.anchor, currentCloudAnchor.Identifier);
+        text.text = spawnedGameObject[selection].GetComponent<CloudNativeAnchor>().CloudAnchor.Identifier;
+        FindAndSetAnchorId(anchorStore.anchor, spawnedGameObject[selection].GetComponent<CloudNativeAnchor>().CloudAnchor.Identifier);
         UpdateFile();
         // spawnedObject = null;
     }
@@ -399,7 +399,7 @@ public class AnchorAdder : InputInteractionBase
     async Task SaveCurrentObjectAnchorToCloudAsync()
     {
         // Get the cloud-native anchor behavior
-        CloudNativeAnchor cna = spawnedObject.GetComponent<CloudNativeAnchor>();
+        CloudNativeAnchor cna = spawnedGameObject[selection].GetComponent<CloudNativeAnchor>();
 
         // If the cloud portion of the anchor hasn't been created yet, create it
         if (cna.CloudAnchor == null)
@@ -430,10 +430,10 @@ public class AnchorAdder : InputInteractionBase
             await CloudManager.CreateAnchorAsync(cloudAnchor);
 
             // Store
-            currentCloudAnchor = cloudAnchor;
+            //currentCloudAnchor = cloudAnchor;
 
             // Success?
-            success = currentCloudAnchor != null;
+            success = cloudAnchor != null;
 
             if (success || !isErrorActive)
             {
