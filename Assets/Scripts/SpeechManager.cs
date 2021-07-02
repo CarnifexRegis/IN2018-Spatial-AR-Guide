@@ -79,9 +79,6 @@ public class SpeechManager : MonoBehaviour
         // So we need to set the format to Raw16Khz16BitMonoPcm.
         _speechConfig.SetSpeechSynthesisOutputFormat(SpeechSynthesisOutputFormat.Raw16Khz16BitMonoPcm);
 
-        // Max profanity needed
-        _speechConfig.SetProfanity(ProfanityOption.Raw);
-
         _synthesizer = new SpeechSynthesizer(_speechConfig, null);
     }
 

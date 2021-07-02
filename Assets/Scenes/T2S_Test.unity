@@ -1181,8 +1181,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4fba09491bf2dce40986414cbceb5b1f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _subscriptionKey: 38a817956c724fbebfefe36744d7c7d9
-  _serverRegion: eastus
+  _subscriptionKey: 
+  _serverRegion: 
   _inputField: {fileID: 1953332407}
   _speakButton: {fileID: 1656230728}
   _audioSource: {fileID: 2140746400}
