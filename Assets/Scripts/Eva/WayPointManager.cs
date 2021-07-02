@@ -14,6 +14,7 @@ public class WayPointManager : MonoBehaviour
     public List<ARRaycastHit> hits = new List<ARRaycastHit>();
     public List<GameObject> wayPoints = new List<GameObject>();
     public GameObject guide;
+    public GameObject arrow;
 
     void Start()
     {
@@ -38,6 +39,12 @@ public class WayPointManager : MonoBehaviour
 
             }
         }
+    }
+    public void StartArrow() {
+        arrow.SetActive(true);
+        Guidance guidance = (Guidance)arrow.GetComponent<Pointer>();
+        guidance.AssignPath(wayPoints, 0);
+        guidance.StartGuidance();
     }
     public void StartGuide() {
 
