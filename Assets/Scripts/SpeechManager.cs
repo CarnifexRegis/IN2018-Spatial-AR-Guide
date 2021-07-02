@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using Microsoft.CognitiveServices.Speech;
 using UnityEngine.UI;
@@ -68,9 +66,6 @@ public class SpeechManager : MonoBehaviour
         {
             if (result.Reason == ResultReason.SynthesizingAudioCompleted)
             {
-                // Native playback is not supported on Unity yet (currently only supported on Windows/Linux Desktop).
-                // Use the Unity API to play audio here as a short term solution.
-                // Native playback support will be added in the future release.
                 var sampleCount = result.AudioData.Length / 2;
                 var audioData = new float[sampleCount];
                 for (var i = 0; i < sampleCount; ++i)
@@ -82,13 +77,12 @@ public class SpeechManager : MonoBehaviour
                 audioClip.SetData(audioData, 0);
                 _audioSource.clip = audioClip;
                 _audioSource.Play();
-
                 Debug.Log( "Speech synthesis succeeded!");
             }
             else if (result.Reason == ResultReason.Canceled)
             {
                 var cancellation = SpeechSynthesisCancellationDetails.FromResult(result);
-                Debug.Log($"CANCELED:\nReason=[{cancellation.Reason}]\nErrorDetails=[{cancellation.ErrorDetails}]\nDid you update the subscription info?");
+                Debug.Log($"CANCELED: Reason=[{cancellation.Reason}] - ErrorDetails=[{cancellation.ErrorDetails}]");
             }
         }
 
@@ -112,7 +106,6 @@ public class SpeechManager : MonoBehaviour
         string voiceName = $"{voiceLanguage}-{ConvertVoiceName(_voiceName)}";
         _speechConfig.SpeechSynthesisLanguage = voiceLanguage;
         _speechConfig.SpeechSynthesisVoiceName = voiceName;
-
 
         _synthesizer = new SpeechSynthesizer(_speechConfig, null);
     }
