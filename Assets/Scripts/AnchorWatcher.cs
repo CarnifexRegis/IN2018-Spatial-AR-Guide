@@ -4,6 +4,7 @@ using UnityEngine;
 using Microsoft.Azure.SpatialAnchors;
 using Microsoft.Azure.SpatialAnchors.Unity;
 using System;
+using System.IO;
 
 public class AnchorWatcher : MonoBehaviour
 {
@@ -16,9 +17,14 @@ public class AnchorWatcher : MonoBehaviour
     string id = "e52a21b8-3ca4-4c84-b34d-39ca94b56a88";
     readonly List<string> anchorIdsToLocate = new List<string>();
     GameObject spawnedObject = null;
+    AnchorStore anchorStore;
+    Dictionary<string,string> nameIDDataset = new Dictionary<string, string>();
+    Dictionary<string,GameObject> spawnedGameObject = new Dictionary<string, GameObject>();
+    Guidance guidance;
 
     void Start()
     {
+        UpdateAnchorStore();
         CloudManager.SessionUpdated += CloudManager_SessionUpdated;
         CloudManager.AnchorLocated += CloudManager_AnchorLocated;
         CloudManager.LocateAnchorsCompleted += CloudManager_LocateAnchorsCompleted;
@@ -27,6 +33,31 @@ public class AnchorWatcher : MonoBehaviour
         anchorLocateCriteria = new AnchorLocateCriteria();
         ConfigureSession();
         Setup();
+    }
+
+    void UpdateAnchorStore()
+    {
+        string json = File.ReadAllText(Application.persistentDataPath + "/AnchorStore.json");
+        anchorStore = JsonUtility.FromJson<AnchorStore>(json);
+        MakeDictionary();
+        guidance = GameObject.FindObjectOfType<Guidance>();
+        guidance.anchorStore = anchorStore;
+    }
+
+    void MakeDictionary()
+    {
+        GetKeyIdPair(anchorStore.anchor);
+    }
+
+    void GetKeyIdPair(Anchor anchor)
+    {
+        print(anchor.id);
+        nameIDDataset.Add(anchor.name, anchor.id);
+        spawnedGameObject.Add(anchor.name,null);
+        foreach(Anchor a in anchor.children)
+        {
+            GetKeyIdPair(a);
+        }
     }
 
     async void Setup()
@@ -93,7 +124,7 @@ public class AnchorWatcher : MonoBehaviour
 
                 anchorPose = args.Anchor.GetPose();
 
-                SpawnOrMoveCurrentAnchoredObject(anchorPose.position, anchorPose.rotation);
+                SpawnOrMoveCurrentAnchoredObject(anchorPose.position, anchorPose.rotation, args.Anchor);
             });
         }
     }
@@ -123,20 +154,31 @@ public class AnchorWatcher : MonoBehaviour
     {
         
     }
-    void SpawnOrMoveCurrentAnchoredObject(Vector3 worldPos, Quaternion worldRot)
+    void SpawnOrMoveCurrentAnchoredObject(Vector3 worldPos, Quaternion worldRot, CloudSpatialAnchor cloudAnchor)
     {
         // Create the object if we need to, and attach the platform appropriate
         // Anchor behavior to the spawned object
-        if (spawnedObject == null)
-        {
-            // Use factory method to create
-            spawnedObject = SpawnNewAnchoredObject(worldPos, worldRot, currentCloudAnchor);
+        string key = "";
+        foreach (string keyVar in nameIDDataset.Keys) 
+        { 
+            if (nameIDDataset[keyVar] == cloudAnchor.Identifier)
+            {
+                key = keyVar;
+                break;
+            }
         }
-        else
-        {
-            // Use factory method to move
-            MoveAnchoredObject(spawnedObject, worldPos, worldRot, currentCloudAnchor);
-        }
+        spawnedGameObject[key] = SpawnNewAnchoredObject(worldPos, worldRot, cloudAnchor);
+        guidance.AddNewFoundAnchor(key, spawnedGameObject[key]);
+        // if (spawnedObject == null)
+        // {
+        //     // Use factory method to create
+        //     spawnedObject = SpawnNewAnchoredObject(worldPos, worldRot, currentCloudAnchor);
+        // }
+        // else
+        // {
+        //     // Use factory method to move
+        //     MoveAnchoredObject(spawnedObject, worldPos, worldRot, currentCloudAnchor);
+        // }
     }
 
     GameObject SpawnNewAnchoredObject(Vector3 worldPos, Quaternion worldRot, CloudSpatialAnchor cloudSpatialAnchor)
@@ -195,9 +237,7 @@ public class AnchorWatcher : MonoBehaviour
 
     private void ConfigureSession()
     {
-        List<string> anchorsToFind = new List<string>();
-        anchorsToFind.Add(id);
-        SetAnchorIdsToLocate(anchorsToFind);
+        SetAnchorIdsToLocate(nameIDDataset.Values);
     }
 
     protected void SetAnchorIdsToLocate(IEnumerable<string> anchorIds)

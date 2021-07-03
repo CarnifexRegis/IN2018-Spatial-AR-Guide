@@ -276,7 +276,7 @@ public class AnchorAdder : InputInteractionBase
             else
             {
                 // Use factory method to move
-                MoveAnchoredObject(spawnedGameObject[selection], worldPos, worldRot, spawnedGameObject[selection].GetComponent<CloudNativeAnchor>().CloudAnchor);
+                // MoveAnchoredObject(spawnedGameObject[selection], worldPos, worldRot);
             }
         }
         else
@@ -374,7 +374,15 @@ public class AnchorAdder : InputInteractionBase
         {
             // No. Just set the pose.
             cna.SetPose(worldPos, worldRot);
+            
+            UpdateAnchor(cna);
         }
+    }
+
+    async void UpdateAnchor(CloudNativeAnchor cna)
+    {
+        cna.NativeToCloud(true);
+        await CloudManager.Session.UpdateAnchorPropertiesAsync(cna.CloudAnchor);
     }
 
     /// <summary>
