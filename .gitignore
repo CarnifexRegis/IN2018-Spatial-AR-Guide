@@ -15,6 +15,7 @@ Assets/UnityARKitPlugin*
 [Bb]uilds/
 [Ll]ogs/
 [Aa]ssets/AssetStoreTools*
+Packages/
 
 # Visual Studio cache directory
 .vs/
