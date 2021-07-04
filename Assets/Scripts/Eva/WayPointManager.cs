@@ -44,13 +44,13 @@ public class WayPointManager : MonoBehaviour
         arrow.SetActive(true);
         Guidance guidance = (Guidance)arrow.GetComponent<Pointer>();
         guidance.AssignPath(wayPoints, 0);
-        guidance.StartGuidance();
+      //  guidance.StartGuidance();
     }
     public void StartGuide() {
 
         guide.SetActive(true);
         Guidance guidance = (Guidance)guide.GetComponent<Guide>();
         guidance.AssignPath(wayPoints, 0);
-        guidance.StartGuidance();
+        //guidance.StartGuidance();
     }
 }

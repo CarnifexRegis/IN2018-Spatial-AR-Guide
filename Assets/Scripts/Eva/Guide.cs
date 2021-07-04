@@ -1,12 +1,19 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+//using UnityEngine.CoreModule;
 
 public class Guide : Guidance
 {
 
     float movementSpeed = 0.4f;
     // Start is called before the first frame update
+    public float followDistance = 1.4f;
+    void Start()
+    {
+        rotationSpeed = 14.0f;
+        InitializeGuidance();
+    }
     void Update()
     {
         if (guiding)
@@ -15,6 +22,7 @@ public class Guide : Guidance
             {
                 //guiding = false;
                 GuidanceComplete();
+                LookAtDir(lookDir);
                 return;
 
             }
@@ -26,51 +34,65 @@ public class Guide : Guidance
         }
         else
         {
+            IdleUpdate();
+        }
+        LookAtDir(lookDir);
+    }
+    public void IdleUpdate() {
+        Vector3 dir = (gameObject.transform.position-Camera.main.transform.position).normalized;
+        lookDir = dir;
+        //LookAtDir(dir);
+        Vector2 player = new Vector2(Camera.main.transform.position.x, Camera.main.transform.position.z);
+        Vector2 guide = new Vector2(gameObject.transform.position.x, gameObject.transform.position.z);
+        if (Vector2.Distance(player, guide) < followDistance)
+        {
             state = GuideState.Idle;
         }
-
+        else
+        {
+            MoveTowards(Camera.main.transform.position);
+        }
     }
 
     public bool WaitForPlayer()
     {
         //if distance to guide is too big wait for the player and look at him / Maby wave at the player
-        Vector3 dir = (AR_Camera.transform.position - guide.transform.position).normalized;
-        if ((dir).magnitude > 2)
+        Vector3 dir = (gameObject.transform.position - Camera.main.transform.position);
+        if ((dir).magnitude > 2.0)
         {
             state = GuideState.Waiting;
-
-            // dir.y = 0; // keep the direction strictly horizontal
-            Quaternion rot = Quaternion.LookRotation(dir);
-             //slerp to the desired rotation over time
-            guide.transform.rotation = Quaternion.Slerp(guide.transform.rotation, rot, rotationSpeed * Time.deltaTime);
+            lookDir = dir;
+            //LookAtDir(dir);
              return true;
         }
         return false;
 
     }
+ 
     public override void PersueWaypoint()
     {
         state = GuideState.Guiding;
         Vector3 wayPointPos = wayPoints[wayPointIndex].transform.position;
-        wayPointPos.y += 0.3f;
-        Vector3 pos = Vector3.MoveTowards(guide.transform.position, wayPointPos, movementSpeed * Time.deltaTime);
-        //TODO temp for plane intiation
-        //pos.y = -0.1f;
-        guide.transform.position = pos;
+        wayPointPos.y += 0.2f;
+        MoveTowards(wayPointPos);
+        Vector3 dir = (gameObject.transform.position - wayPointPos).normalized;
 
-        Vector3 dir = (guide.transform.position - wayPointPos).normalized;
-        Quaternion rot = Quaternion.LookRotation(dir);
-        // slerp to the desired rotation over time
-        guide.transform.rotation = Quaternion.Slerp(guide.transform.rotation, rot, rotationSpeed * Time.deltaTime);
+        lookDir = dir;
 
 
-        if (wayPointPos.Equals(guide.transform.position))
+        if (wayPointPos.Equals(gameObject.transform.position))
         {
             WaypointRached();
-            //wayPointIndex %= (wayPoints.Count);
         }
     }
+    public void MoveTowards(Vector3 target) {
+        Vector3 pos = Vector3.MoveTowards(gameObject.transform.position, target, movementSpeed * Time.deltaTime);
+        //TODO temp for plane intiation
+        //pos.y = -0.1f;
+        gameObject.transform.position = pos;
+    }
     public override void GuidanceComplete() {
-    
+        guiding = false;
+        //lookDir = (Camera.main.transform.position - gameObject.transform.position).normalized;
     }
 }

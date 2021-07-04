@@ -9,6 +9,7 @@ public class Pointer : Guidance
     void Start()
     {
         rotationSpeed = 14.0f;
+        InitializeGuidance();
     }
 
     // Update is called once per frame
@@ -32,20 +33,18 @@ public class Pointer : Guidance
     }
     public override void PersueWaypoint() {
         state = GuideState.Guiding;
-        Vector3 wayPoinPos = wayPoints[wayPointIndex].transform.position;
-        wayPoinPos.y += 0.3f;
-        Vector3 pos = AR_Camera.transform.position + AR_Camera.transform.forward * 1.5f;
+        Vector3 pos = Camera.main.transform.position + Camera.main.transform.forward * 1.5f;
         //TODO temp for plane intiation
         //pos.y = -0.1f;
-        guide.transform.position = pos;
+        gameObject.transform.position = pos;
+        Vector3 wayPointPos = wayPoints[wayPointIndex].transform.position;
+        wayPointPos.y += 0.4f;
+        Vector3 dir = (gameObject.transform.position - wayPointPos).normalized;
+        lookDir = dir;
+        LookAtDir(lookDir);
 
-        Vector3 dir = (guide.transform.position - wayPoinPos).normalized;
-        Quaternion rot = Quaternion.LookRotation(dir);
-        // slerp to the desired rotation over time
-        guide.transform.rotation = Quaternion.Slerp(guide.transform.rotation, rot, rotationSpeed * Time.deltaTime);
-
-        float distance = Vector2.Distance(new Vector2(wayPoinPos.x, wayPoinPos.z), new Vector2(AR_Camera.transform.position.x, AR_Camera.transform.position.z));
-        if (distance <=0.2f)
+        float distance = Vector2.Distance(new Vector2(wayPointPos.x, wayPointPos.z), new Vector2(Camera.main.transform.position.x, Camera.main.transform.position.z));
+        if (distance <=0.6f)
         {
             WaypointRached();
             //wayPointIndex %= (wayPoints.Count);
