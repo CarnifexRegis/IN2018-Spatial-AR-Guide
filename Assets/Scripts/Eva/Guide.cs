@@ -8,7 +8,8 @@ public class Guide : Guidance
 
     float movementSpeed = 0.4f;
     // Start is called before the first frame update
-    public float followDistance = 1.4f;
+    public float followDistance;
+    public float waitDistance;
     void Start()
     {
         rotationSpeed = 14.0f;
@@ -58,7 +59,7 @@ public class Guide : Guidance
     {
         //if distance to guide is too big wait for the player and look at him / Maby wave at the player
         Vector3 dir = (gameObject.transform.position - Camera.main.transform.position);
-        if ((dir).magnitude > 2.0)
+        if ((dir).magnitude > waitDistance)
         {
             state = GuideState.Waiting;
             lookDir = dir;

@@ -23,8 +23,8 @@ public abstract class Guidance : MonoBehaviour
     public void InitializeGuidance()
     {
         //guiding = true;
-        Vector3 pos = Camera.main.transform.position + new Vector3(Camera.main.transform.forward.x, 0.0f, Camera.main.transform.forward.z) * 2.0f;
-        Vector3 dir = (Camera.main.transform.position-pos).normalized;
+        Vector3 pos = Camera.main.transform.position + new Vector3(Camera.main.transform.forward.x, 0.0f, Camera.main.transform.forward.z) * 3.0f;
+        Vector3 dir = (pos-Camera.main.transform.position).normalized;
         lookDir = dir;
         Quaternion rot = Quaternion.LookRotation(dir);
         gameObject.transform.position = pos;
