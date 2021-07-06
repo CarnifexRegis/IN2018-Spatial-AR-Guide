@@ -5,6 +5,33 @@ using System;
 
 public class SpeechManager : MonoBehaviour
 {
+    private static SpeechManager _instance;
+    private static object _lock = new object();
+
+    /// <summary>
+    /// Singleton instance of the SpeechManager.
+    /// </summary>
+    public static SpeechManager Instance
+    {
+        get
+        {
+            lock (_lock)
+            {
+                if (!_instance)
+                {
+                    _instance = (SpeechManager)FindObjectOfType(typeof(SpeechManager));
+                    if (!_instance)
+                    {
+                        var singleton = new GameObject { name = "SpeechManager" };
+                        _instance = singleton.AddComponent<SpeechManager>();
+                        DontDestroyOnLoad(singleton);
+                    }
+                }
+                return _instance;
+            }
+        }
+    }
+
     public enum VoiceLanguage
     {
         EnglishUS,

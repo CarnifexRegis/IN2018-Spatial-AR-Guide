@@ -6,9 +6,6 @@ using UnityEngine.Events;
 
 public class Guide : Guidance
 {
-    [SerializeField]
-    private SpeechManager _speechManager;
-
     float movementSpeed = 0.4f;
     // Start is called before the first frame update
     public float followDistance;
@@ -30,7 +27,6 @@ public class Guide : Guidance
             {
                 PersueWaypoint();
             }
-
         }
         else
         {
@@ -48,7 +44,7 @@ public class Guide : Guidance
         {
             // Speak on initial transition to idle state
             if (state != GuideState.Idle)
-                _speechManager.Speak("poop"); // Probably better to call on GuidanceComplete or WaypointReached etc.
+                SpeechManager.Instance.Speak("poop"); // Probably better to call on GuidanceComplete or WaypointReached etc.
 
             state = GuideState.Idle;
         }
