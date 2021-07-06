@@ -6,6 +6,8 @@ using UnityEngine.Events;
 
 public class Guide : Guidance
 {
+    [SerializeField]
+    private SpeechManager _speechManager;
 
     float movementSpeed = 0.4f;
     // Start is called before the first frame update
@@ -44,6 +46,10 @@ public class Guide : Guidance
         Vector2 guide = new Vector2(gameObject.transform.position.x, gameObject.transform.position.z);
         if (Vector2.Distance(player, guide) < followDistance)
         {
+            // Speak on initial transition to idle state
+            if (state != GuideState.Idle)
+                _speechManager.Speak("poop"); // Probably better to call on GuidanceComplete or WaypointReached etc.
+
             state = GuideState.Idle;
         }
         else
