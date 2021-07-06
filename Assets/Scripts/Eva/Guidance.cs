@@ -10,7 +10,7 @@ public abstract class Guidance : MonoBehaviour
     public List<GameObject> wayPoints = new List<GameObject>();
     public Dictionary<string, GameObject> wayPointsDict = new Dictionary<string, GameObject>();
     public AnchorStore anchorStore;
-    public bool guiding = false;
+    //public bool guiding = false;
     public int wayPointIndex = 0;
     //public GameObject guide;
     public float rotationSpeed = 7.0f;
@@ -53,7 +53,8 @@ public abstract class Guidance : MonoBehaviour
             if (key.Equals(anchorStore.anchor.name))
             {
                 wayPoints.Add(value);
-                guiding = true;
+                Debug.Log("Initial Guiding True");
+                //guiding = true;
             }
             else
             {
@@ -65,7 +66,8 @@ public abstract class Guidance : MonoBehaviour
             if (key.Equals(lastAnchor.children[0].name))
             {
                 wayPoints.Add(value);
-                guiding = true;
+                //guiding = true;
+                Debug.Log("following Guiding True");
                 lastAnchor = lastAnchor.children[0];
             }
 

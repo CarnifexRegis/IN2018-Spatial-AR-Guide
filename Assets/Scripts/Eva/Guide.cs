@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 //using UnityEngine.CoreModule;
 
 public class Guide : Guidance
@@ -10,6 +11,9 @@ public class Guide : Guidance
     // Start is called before the first frame update
     public float followDistance;
     public float waitDistance;
+    public UnityEvent startGuidance;
+    public bool startedGuidance = false;
+    public bool guiding = false;
     void Start()
     {
         rotationSpeed = 14.0f;
@@ -17,16 +21,9 @@ public class Guide : Guidance
     }
     void Update()
     {
-        if (guiding)
+       // if()
+        if (wayPointIndex < wayPoints.Count)
         {
-            if (wayPointIndex >= wayPoints.Count)
-            {
-                //guiding = false;
-                GuidanceComplete();
-                LookAtDir(lookDir);
-                return;
-
-            }
             if (!WaitForPlayer())
             {
                 PersueWaypoint();
@@ -93,7 +90,11 @@ public class Guide : Guidance
         gameObject.transform.position = pos;
     }
     public override void GuidanceComplete() {
-        guiding = false;
+        //guiding = false;
         //lookDir = (Camera.main.transform.position - gameObject.transform.position).normalized;
+    }
+    public void StartGuidance() {
+        guiding = true;
+        startGuidance.Invoke();
     }
 }
