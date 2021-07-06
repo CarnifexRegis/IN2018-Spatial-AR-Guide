@@ -55,45 +55,13 @@ public class SpeechManager : MonoBehaviour
     private readonly int _audioChannelCount = 1;
     private readonly int _audioFrequency = 16000;
 
-    public void Speak()
-    {
-        lock (_threadLocker)
-        {
-            _waitingForSpeak = true;
-        }
-
-        using (var result = _synthesizer.SpeakTextAsync(_inputField.text).Result)
-        {
-            if (result.Reason == ResultReason.SynthesizingAudioCompleted)
-            {
-                var sampleCount = result.AudioData.Length / 2;
-                var audioData = new float[sampleCount];
-                for (var i = 0; i < sampleCount; ++i)
-                {
-                    audioData[i] = (short)(result.AudioData[i * 2 + 1] << 8 | result.AudioData[i * 2]) / 32768.0F;
-                }
-
-                var audioClip = AudioClip.Create("SynthesizedAudio", sampleCount, _audioChannelCount, _audioFrequency, false);
-                audioClip.SetData(audioData, 0);
-                _audioSource.clip = audioClip;
-                _audioSource.Play();
-                Debug.Log( "Speech synthesis succeeded!");
-            }
-            else if (result.Reason == ResultReason.Canceled)
-            {
-                var cancellation = SpeechSynthesisCancellationDetails.FromResult(result);
-                Debug.Log($"CANCELED: Reason=[{cancellation.Reason}] - ErrorDetails=[{cancellation.ErrorDetails}]");
-            }
-        }
-
-        lock (_threadLocker)
-        {
-            _waitingForSpeak = false;
-        }
-    }
-
     void Start()
     {
+        if (!_audioSource)
+            throw new Exception("No referenced audio source present for speech!");
+
+        if (string.IsNullOrEmpty(_subscriptionKey) || string.IsNullOrEmpty(_serverRegion))
+            throw new Exception("Subscription key and server region have to be filled!");
         _speechConfig = SpeechConfig.FromSubscription(_subscriptionKey, _serverRegion);
 
         // Set output format
@@ -114,13 +82,63 @@ public class SpeechManager : MonoBehaviour
     {
         lock (_threadLocker)
         {
-            _speakButton.interactable = !_waitingForSpeak;
+            if (_speakButton)
+                _speakButton.interactable = !_waitingForSpeak;
         }
     }
 
     void OnDestroy()
     {
         _synthesizer.Dispose();
+    }
+
+    /// <summary>
+    /// Synthesize audio from the text given in input field.
+    /// </summary>
+    public void Speak()
+    {
+        if (!_inputField)
+            throw new Exception("No input field is referenced for speech!");
+        Speak(_inputField.text);
+    }
+
+    /// <summary>
+    /// Synthesize audio from the given text.
+    /// </summary>
+    /// <param name="text"> Text to synthesize audio from. </param>
+    public void Speak(string text)
+    {
+        lock (_threadLocker)
+        {
+            _waitingForSpeak = true;
+        }
+        using (var result = _synthesizer.SpeakTextAsync(text).Result)
+        {
+            if (result.Reason == ResultReason.SynthesizingAudioCompleted)
+            {
+                var sampleCount = result.AudioData.Length / 2;
+                var audioData = new float[sampleCount];
+                for (var i = 0; i < sampleCount; ++i)
+                {
+                    audioData[i] = (short)(result.AudioData[i * 2 + 1] << 8 | result.AudioData[i * 2]) / 32768.0F;
+                }
+
+                var audioClip = AudioClip.Create("SynthesizedAudio", sampleCount, _audioChannelCount, _audioFrequency, false);
+                audioClip.SetData(audioData, 0);
+                _audioSource.clip = audioClip;
+                _audioSource.Play();
+                Debug.Log("Speech synthesis succeeded!");
+            }
+            else if (result.Reason == ResultReason.Canceled)
+            {
+                var cancellation = SpeechSynthesisCancellationDetails.FromResult(result);
+                Debug.Log($"CANCELED: Reason=[{cancellation.Reason}] - ErrorDetails=[{cancellation.ErrorDetails}]");
+            }
+        }
+        lock (_threadLocker)
+        {
+            _waitingForSpeak = false;
+        }
     }
 
     /// <summary>
@@ -180,26 +198,17 @@ public class SpeechManager : MonoBehaviour
     /// <returns></returns>
     private VoiceLanguage GetCompatibleLanguage(VoiceName voiceName)
     {
-        switch(voiceName)
+        return voiceName switch
         {
-            case VoiceName.Aria:
-                return VoiceLanguage.EnglishUS;
-            case VoiceName.Guy:
-                return VoiceLanguage.EnglishUS;
-            case VoiceName.Zira:
-                return VoiceLanguage.EnglishUS;
-            case VoiceName.Benjamin:
-                return VoiceLanguage.EnglishUS;
-            case VoiceName.Hazel:
-                return VoiceLanguage.EnglishGB;
-            case VoiceName.Susan:
-                return VoiceLanguage.EnglishGB;
-            case VoiceName.George:
-                return VoiceLanguage.EnglishGB;
-            case VoiceName.Hedda:
-                return VoiceLanguage.German;
-            default:
-                throw new Exception($"Voice name {voiceName} is not supported!");
-        }
+            VoiceName.Aria => VoiceLanguage.EnglishUS,
+            VoiceName.Guy => VoiceLanguage.EnglishUS,
+            VoiceName.Zira => VoiceLanguage.EnglishUS,
+            VoiceName.Benjamin => VoiceLanguage.EnglishUS,
+            VoiceName.Hazel => VoiceLanguage.EnglishGB,
+            VoiceName.Susan => VoiceLanguage.EnglishGB,
+            VoiceName.George => VoiceLanguage.EnglishGB,
+            VoiceName.Hedda => VoiceLanguage.German,
+            _ => throw new Exception($"Voice name {voiceName} is not supported!"),
+        };
     }
 }
