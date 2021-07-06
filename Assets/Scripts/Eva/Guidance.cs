@@ -4,7 +4,8 @@ using UnityEngine;
 
 public abstract class Guidance : MonoBehaviour
 {
-    public enum GuideState{
+    public enum GuideState
+    {
         Idle, Waiting, Guiding
     }
     public List<GameObject> wayPoints = new List<GameObject>();
@@ -14,7 +15,7 @@ public abstract class Guidance : MonoBehaviour
     public int wayPointIndex = 0;
     //public GameObject guide;
     public float rotationSpeed = 7.0f;
-    public GuideState state= GuideState.Idle;
+    public GuideState state = GuideState.Idle;
     string waiting = "Room1";
     public Vector3 lookDir;
     Anchor lastAnchor = null;
@@ -24,15 +25,16 @@ public abstract class Guidance : MonoBehaviour
     {
         //guiding = true;
         Vector3 pos = Camera.main.transform.position + new Vector3(Camera.main.transform.forward.x, 0.0f, Camera.main.transform.forward.z) * 3.0f;
-        Vector3 dir = (pos-Camera.main.transform.position).normalized;
+        Vector3 dir = (pos - Camera.main.transform.position).normalized;
         lookDir = dir;
         Quaternion rot = Quaternion.LookRotation(dir);
         gameObject.transform.position = pos;
         gameObject.transform.rotation = rot;
     }
-    public  abstract void GuidanceComplete();
+    public abstract void GuidanceComplete();
     public abstract void PersueWaypoint();
-    public void AssignPath(List<GameObject> wayPoints, int wayPointIndex) {
+    public void AssignPath(List<GameObject> wayPoints, int wayPointIndex)
+    {
         this.wayPoints = wayPoints;
         this.wayPointIndex = wayPointIndex;
     }
@@ -41,12 +43,12 @@ public abstract class Guidance : MonoBehaviour
         wayPointIndex++;
     }
     public void SetHead()
-    { 
-        
+    {
+
     }
     public void AddNewFoundAnchor(string key, GameObject value)
     {
-        wayPointsDict.Add(key,value);
+        wayPointsDict.Add(key, value);
         if (lastAnchor == null)
         {
             lastAnchor = anchorStore.anchor;
@@ -62,7 +64,8 @@ public abstract class Guidance : MonoBehaviour
             }
 
         }
-        else {
+        else
+        {
             if (key.Equals(lastAnchor.children[0].name))
             {
                 wayPoints.Add(value);
@@ -77,7 +80,7 @@ public abstract class Guidance : MonoBehaviour
 
     public void LookAtDir(Vector3 dir)
     {
-         // keep the direction strictly horizontal
+        // keep the direction strictly horizontal
         Quaternion rot = Quaternion.LookRotation(dir);
         //slerp to the desired rotation over time
         gameObject.transform.rotation = Quaternion.Slerp(gameObject.transform.rotation, rot, rotationSpeed * Time.deltaTime);

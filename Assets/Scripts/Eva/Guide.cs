@@ -6,6 +6,7 @@ using UnityEngine.Events;
 
 public class Guide : Guidance
 {
+
     float movementSpeed = 0.4f;
     // Start is called before the first frame update
     public float followDistance;
@@ -17,16 +18,18 @@ public class Guide : Guidance
     {
         rotationSpeed = 14.0f;
         InitializeGuidance();
+        SpeechManager.Instance.Speak("Hello Stranger 77777777777777777777777777"); //
     }
     void Update()
     {
-       // if()
+        // if()
         if (wayPointIndex < wayPoints.Count)
         {
             if (!WaitForPlayer())
             {
                 PersueWaypoint();
             }
+
         }
         else
         {
@@ -34,18 +37,15 @@ public class Guide : Guidance
         }
         LookAtDir(lookDir);
     }
-    public void IdleUpdate() {
-        Vector3 dir = (gameObject.transform.position-Camera.main.transform.position).normalized;
+    public void IdleUpdate()
+    {
+        Vector3 dir = (gameObject.transform.position - Camera.main.transform.position).normalized;
         lookDir = dir;
         //LookAtDir(dir);
         Vector2 player = new Vector2(Camera.main.transform.position.x, Camera.main.transform.position.z);
         Vector2 guide = new Vector2(gameObject.transform.position.x, gameObject.transform.position.z);
         if (Vector2.Distance(player, guide) < followDistance)
         {
-            // Speak on initial transition to idle state
-            if (state != GuideState.Idle)
-                SpeechManager.Instance.Speak("poop"); // Probably better to call on GuidanceComplete or WaypointReached etc.
-
             state = GuideState.Idle;
         }
         else
@@ -63,12 +63,12 @@ public class Guide : Guidance
             state = GuideState.Waiting;
             lookDir = dir;
             //LookAtDir(dir);
-             return true;
+            return true;
         }
         return false;
 
     }
- 
+
     public override void PersueWaypoint()
     {
         state = GuideState.Guiding;
@@ -85,17 +85,20 @@ public class Guide : Guidance
             WaypointRached();
         }
     }
-    public void MoveTowards(Vector3 target) {
+    public void MoveTowards(Vector3 target)
+    {
         Vector3 pos = Vector3.MoveTowards(gameObject.transform.position, target, movementSpeed * Time.deltaTime);
         //TODO temp for plane intiation
         //pos.y = -0.1f;
         gameObject.transform.position = pos;
     }
-    public override void GuidanceComplete() {
+    public override void GuidanceComplete()
+    {
         //guiding = false;
         //lookDir = (Camera.main.transform.position - gameObject.transform.position).normalized;
     }
-    public void StartGuidance() {
+    public void StartGuidance()
+    {
         guiding = true;
         startGuidance.Invoke();
     }

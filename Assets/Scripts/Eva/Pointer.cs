@@ -20,21 +20,22 @@ public class Pointer : Guidance
     void Update()
     {
 
-        if (wayPointIndex  < wayPoints.Count)
+        if (wayPointIndex < wayPoints.Count)
         {
             Debug.Log("Guiding");
 
 
-                PersueWaypoint();
-            
+            PersueWaypoint();
+
 
         }
-        else 
+        else
         {
             ArrowIdle();
         }
     }
-    public void ArrowIdle() {
+    public void ArrowIdle()
+    {
         gameObject.GetComponent<Renderer>().enabled = false;
         gameObject.GetComponent<Renderer>().material = notActive;
         Vector3 pos = Camera.main.transform.position + Camera.main.transform.forward * 1.5f;
@@ -42,11 +43,13 @@ public class Pointer : Guidance
         //pos.y = -0.1f;
         gameObject.transform.position = pos;
     }
-    public override void GuidanceComplete() {
+    public override void GuidanceComplete()
+    {
         Debug.Log("Guidance Complete guiding false");
         //guiding = false;
     }
-    public override void PersueWaypoint() {
+    public override void PersueWaypoint()
+    {
         gameObject.GetComponent<Renderer>().enabled = true;
         gameObject.GetComponent<Renderer>().material = active;
         state = GuideState.Guiding;
@@ -61,7 +64,7 @@ public class Pointer : Guidance
         LookAtDir(lookDir);
 
         float distance = Vector2.Distance(new Vector2(wayPointPos.x, wayPointPos.z), new Vector2(Camera.main.transform.position.x, Camera.main.transform.position.z));
-        if (distance <=detectionDistance)
+        if (distance <= detectionDistance)
         {
             WaypointRached();
             //wayPointIndex %= (wayPoints.Count);

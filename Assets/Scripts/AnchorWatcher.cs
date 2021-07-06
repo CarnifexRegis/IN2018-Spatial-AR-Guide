@@ -18,8 +18,8 @@ public class AnchorWatcher : MonoBehaviour
     readonly List<string> anchorIdsToLocate = new List<string>();
     GameObject spawnedObject = null;
     AnchorStore anchorStore;
-    Dictionary<string,string> nameIDDataset = new Dictionary<string, string>();
-    Dictionary<string,GameObject> spawnedGameObject = new Dictionary<string, GameObject>();
+    Dictionary<string, string> nameIDDataset = new Dictionary<string, string>();
+    Dictionary<string, GameObject> spawnedGameObject = new Dictionary<string, GameObject>();
     Guidance guidance;
 
     void Start()
@@ -53,8 +53,8 @@ public class AnchorWatcher : MonoBehaviour
     {
         print(anchor.id);
         nameIDDataset.Add(anchor.name, anchor.id);
-        spawnedGameObject.Add(anchor.name,null);
-        foreach(Anchor a in anchor.children)
+        spawnedGameObject.Add(anchor.name, null);
+        foreach (Anchor a in anchor.children)
         {
             GetKeyIdPair(a);
         }
@@ -152,15 +152,15 @@ public class AnchorWatcher : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
+
     }
     void SpawnOrMoveCurrentAnchoredObject(Vector3 worldPos, Quaternion worldRot, CloudSpatialAnchor cloudAnchor)
     {
         // Create the object if we need to, and attach the platform appropriate
         // Anchor behavior to the spawned object
         string key = "";
-        foreach (string keyVar in nameIDDataset.Keys) 
-        { 
+        foreach (string keyVar in nameIDDataset.Keys)
+        {
             if (nameIDDataset[keyVar] == cloudAnchor.Identifier)
             {
                 key = keyVar;
