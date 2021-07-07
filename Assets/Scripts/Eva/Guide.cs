@@ -6,37 +6,49 @@ using UnityEngine.Events;
 
 public class Guide : Guidance
 {
+    private Animator _animator;
 
     float movementSpeed = 0.4f;
-    // Start is called before the first frame update
     public float followDistance;
     public float waitDistance;
     public UnityEvent startGuidance;
     public bool startedGuidance = false;
     public bool guiding = false;
+
     void Start()
     {
         rotationSpeed = 14.0f;
         InitializeGuidance();
+        _animator = GetComponent<Animator>();
         SpeechManager.Instance.Speak("Hello Stranger 77777777777777777777777777"); //
     }
+
     void Update()
     {
-        // if()
         if (wayPointIndex < wayPoints.Count)
         {
             if (!WaitForPlayer())
             {
                 PersueWaypoint();
             }
-
         }
         else
         {
             IdleUpdate();
         }
         LookAtDir(lookDir);
+
+        // @Simon:
+        // I put this code snippet for you as an example, basically switch between two states as follows.
+        // You can remove the region when you're done.
+        #region Test
+        if (Input.GetKeyDown(KeyCode.F1))
+            _animator.SetBool("PowerOn", true);
+        if (Input.GetKeyDown(KeyCode.F2))
+            _animator.SetBool("PowerOn", false);
+        #endregion
     }
+
     public void IdleUpdate()
     {
         Vector3 dir = (gameObject.transform.position - Camera.main.transform.position).normalized;
