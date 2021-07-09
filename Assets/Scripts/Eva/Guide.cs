@@ -8,7 +8,7 @@ using UnityEngine.Events;
 public class Guide : Guidance
 {
 
-    float movementSpeed = 0.4f;
+    float movementSpeed = 1.0f;
     // Start is called before the first frame update
     public float followDistance;
     public float waitDistance;
@@ -19,6 +19,7 @@ public class Guide : Guidance
     public Material blue;
     // Used to show the user where they need to look to start the guidance
     public RawImage image;
+    public Poster poster;
 
 
 
@@ -29,7 +30,8 @@ public class Guide : Guidance
         _animator = GetComponent<Animator>();
         _animator.SetBool("PowerOn", true);
         InitializeGuidance();
-        StartCoroutine(GreetUser(5.0f, "Hello friend, please find the scene depickted on my ledt hand side"));
+       
+        StartCoroutine(GreetUser(5.0f, "Hello friend, please find the scene depickted on my left hand side"));
     }
     public IEnumerator GreetUser(float waitTime, string message)
     {
@@ -86,14 +88,30 @@ public class Guide : Guidance
     {
         //if distance to guide is too big wait for the player and look at him / Maby wave at the player
         Vector3 dir = (gameObject.transform.position - Camera.main.transform.position);
-        if ((dir).magnitude > waitDistance)
-        {
-            state = GuideState.Waiting;
-            lookDir = dir;
-            //LookAtDir(dir);
-            return true;
+        if (state==GuideState.Waiting) {
+            if ((dir).magnitude > waitDistance-0.5f)
+            {
+                lookDir = dir;
+                //LookAtDir(dir);
+                return true;
+            }
+            state = GuideState.Guiding;
+            return false;
         }
-        return false;
+        else
+        {
+            if ((dir).magnitude > waitDistance)
+            {
+                state = GuideState.Waiting;
+                lookDir = dir;
+                //LookAtDir(dir);
+                return true;
+            }
+            state = GuideState.Guiding;
+            return false;
+
+        }
+
 
     }
     // Iterates to the nex wayypoint in the list of thecurrent path
@@ -110,14 +128,27 @@ public class Guide : Guidance
 
         if (wayPointPos.Equals(gameObject.transform.position))
         {
-            // TODO not 100 corrext if not all points are detected in the future throw event and check if there are other anchors to detect instead
-            if (wayPointIndex >= wayPoints.Count)
-            {
-                StartCoroutine(DestinationReached());
-            }
-            WaypointRached();
-         
+            wayPointIndex++;
+            // StartCoroutine(WaypointRached());
+
+
         }
+    }
+    public override  IEnumerator WaypointRached() {
+        Debug.Log("ReachedWaypoint");
+        if (lastAnchor != null&&lastAnchor?.text!=null)
+        {
+            SpeechManager.Instance.Speak(lastAnchor.text);
+            yield return new WaitUntil(() => SpeechManager.Instance._audioSource.isPlaying == false);
+        }
+        yield return new WaitForSeconds(0.5f);
+        wayPointIndex++;
+        if (wayPointIndex >= wayPoints.Count)
+        {
+            StartCoroutine(DestinationReached());
+        }
+
+        Debug.Log("waypoint counter "+wayPointIndex);
     }
     // Slowly move the paarent game object towards a position provided (Called on Update)
     public void MoveTowards(Vector3 target)
@@ -139,6 +170,7 @@ public class Guide : Guidance
     public void StartGuidance()
     {
         guiding = true;
+        poster.SetCanvasActive(false);
        // startGuidance.Invoke();
     }
 
@@ -161,12 +193,13 @@ public class Guide : Guidance
     //Supposed to be called when the last way point of the current path was found
     public IEnumerator DestinationReached() {
         SpeechManager.Instance.Speak("Destination Reached. Shutting down.");
-        yield return new WaitForSeconds(3.0f);
+        yield return new WaitForSeconds(2.0f);
         _animator.SetBool("PowerOn", false);
     }
 
     // Tells the user to follow them once eve starts moving towards a waypoint
     public void AnnounceGuidanceStart() {
-        SpeechManager.Instance.Speak("Let´s go follow me");
+        Debug.Log("Annonce Start"); 
+        //SpeechManager.Instance.Speak("Let´s go follow me");
     }
 }

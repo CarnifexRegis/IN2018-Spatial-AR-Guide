@@ -6,7 +6,7 @@ public abstract class Guidance : MonoBehaviour
 {
     public enum GuideState
     {
-        Idle, Waiting, Guiding
+        Idle, Waiting, Guiding, Explaining
     }
     public List<GameObject> wayPoints = new List<GameObject>();
     public Dictionary<string, GameObject> wayPointsDict = new Dictionary<string, GameObject>();
@@ -18,13 +18,14 @@ public abstract class Guidance : MonoBehaviour
     public GuideState state = GuideState.Idle;
     string waiting = "Room1";
     public Vector3 lookDir;
-    Anchor lastAnchor = null;
+    protected Anchor lastAnchor = null;
 
     //TODO prob special method for every child
     public void InitializeGuidance()
     {
         //guiding = true;
         Vector3 pos = Camera.main.transform.position + new Vector3(Camera.main.transform.forward.x, 0.0f, Camera.main.transform.forward.z) * 3.0f;
+        pos.y -= 0.2f;
         Vector3 dir = (pos - Camera.main.transform.position).normalized;
         lookDir = dir;
         Quaternion rot = Quaternion.LookRotation(dir);
@@ -38,10 +39,7 @@ public abstract class Guidance : MonoBehaviour
         this.wayPoints = wayPoints;
         this.wayPointIndex = wayPointIndex;
     }
-    public void WaypointRached()
-    {
-        wayPointIndex++;
-    }
+    public abstract IEnumerator WaypointRached();
     public void SetHead()
     {
 

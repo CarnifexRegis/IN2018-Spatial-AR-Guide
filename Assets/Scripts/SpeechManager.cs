@@ -57,7 +57,7 @@ public class SpeechManager : MonoBehaviour
     [SerializeField]
     private Button _speakButton;
     [SerializeField]
-    private AudioSource _audioSource;
+    public AudioSource _audioSource;
 
     [Header ("Configuration")]
     [SerializeField]
@@ -124,6 +124,8 @@ public class SpeechManager : MonoBehaviour
     /// </summary>
     public void Speak()
     {
+        if (_waitingForSpeak)
+            return;
         if (!_inputField)
             throw new Exception("No input field is referenced for speech!");
         Speak(_inputField.text);

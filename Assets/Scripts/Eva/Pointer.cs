@@ -78,4 +78,9 @@ public class Pointer : Guidance
        
     }
 
+    public override IEnumerator WaypointRached()
+    {
+        yield return new WaitForSeconds(1.0f);
+    }
+
 }

@@ -317,6 +317,11 @@ PrefabInstance:
       objectReference: {fileID: 1471615743}
     - target: {fileID: -3331395952100742558, guid: 2db3955fcbb18c24888f61f5b3e386dc,
         type: 3}
+      propertyPath: poster
+      value: 
+      objectReference: {fileID: 266824852}
+    - target: {fileID: -3331395952100742558, guid: 2db3955fcbb18c24888f61f5b3e386dc,
+        type: 3}
       propertyPath: waitDistance
       value: 3
       objectReference: {fileID: 0}
@@ -1675,7 +1680,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   CloudManager: {fileID: 1952729316}
-  AnchoredObjectPrefab: {fileID: 1147623660883556, guid: e593bfccf03b6444da88c7591f906ba8,
+  AnchoredObjectPrefab: {fileID: 5615209224733596650, guid: a577dca136e52404bad6f65cb9972896,
     type: 3}
 --- !u!1 &1987984103
 GameObject:
