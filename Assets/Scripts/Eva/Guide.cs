@@ -6,38 +6,49 @@ using UnityEngine.Events;
 
 public class Guide : Guidance
 {
-    private Animator _animator;
 
     float movementSpeed = 0.4f;
+    // Start is called before the first frame update
     public float followDistance;
     public float waitDistance;
     public UnityEvent startGuidance;
     public bool startedGuidance = false;
     public bool guiding = false;
-
+    private Animator _animator;
     void Start()
     {
+        _animator = GetComponent<Animator>();
         rotationSpeed = 14.0f;
         InitializeGuidance();
-        _animator = GetComponent<Animator>();
-        SpeechManager.Instance.Speak("Hello Stranger 77777777777777777777777777"); //
+        StartCoroutine(GreetUser(10.0f, "Hello friend, please find the scene depickted on my ledt hand side"));
     }
+    public IEnumerator GreetUser(float waitTime, string message)
+    {
+        SpeechManager.Instance.Speak(message);
+        yield return new WaitForSeconds(waitTime);
+        StartGuidance();
 
+
+    }
     void Update()
     {
+        if (!guiding)
+        {
+            return;
+        }
         if (wayPointIndex < wayPoints.Count)
         {
             if (!WaitForPlayer())
             {
                 PersueWaypoint();
             }
+
         }
         else
         {
             IdleUpdate();
         }
         LookAtDir(lookDir);
-
         // @Simon:
         // I put this code snippet for you as an example, basically switch between two states as follows.
         // You can remove the region when you're done.
@@ -48,7 +59,6 @@ public class Guide : Guidance
             _animator.SetBool("PowerOn", false);
         #endregion
     }
-
     public void IdleUpdate()
     {
         Vector3 dir = (gameObject.transform.position - Camera.main.transform.position).normalized;
@@ -62,6 +72,9 @@ public class Guide : Guidance
         }
         else
         {
+            if (!_animator.GetBool("PowerOn")) {
+                _animator.SetBool("PowerOn", true);
+            }
             MoveTowards(Camera.main.transform.position);
         }
     }
@@ -94,6 +107,9 @@ public class Guide : Guidance
 
         if (wayPointPos.Equals(gameObject.transform.position))
         {
+            if (lastAnchor.children.Count == 0) {
+                GuidanceComplete(5.0f, "Target Destination Reached");
+            }
             WaypointRached();
         }
     }
@@ -104,14 +120,24 @@ public class Guide : Guidance
         //pos.y = -0.1f;
         gameObject.transform.position = pos;
     }
-    public override void GuidanceComplete()
+    public IEnumerator GuidanceComplete(float waitTime, string message)
     {
-        //guiding = false;
-        //lookDir = (Camera.main.transform.position - gameObject.transform.position).normalized;
+        SpeechManager.Instance.Speak(message);
+        yield return new WaitForSeconds(waitTime);
+        _animator.SetBool("PowerOn", false);
+
+
+    }
+    public override void GuidanceComplete() { 
+        
     }
     public void StartGuidance()
     {
         guiding = true;
         startGuidance.Invoke();
+    }
+    public override void FirstAnchorFound()
+    {
+        _animator.SetBool("PowerOn", false);
     }
 }

@@ -70,5 +70,9 @@ public class Pointer : Guidance
             //wayPointIndex %= (wayPoints.Count);
         }
     }
+    public override void FirstAnchorFound()
+    {
+
+    }
 
 }
