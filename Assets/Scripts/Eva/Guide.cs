@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 using UnityEngine.Events;
 //using UnityEngine.CoreModule;
 
@@ -14,13 +15,21 @@ public class Guide : Guidance
     public UnityEvent startGuidance;
     public bool startedGuidance = false;
     public bool guiding = false;
+    public Material red;
+    public Material blue;
+    // Used to show the user where they need to look to start the guidance
+    public RawImage image;
+
+
+
     private Animator _animator;
     void Start()
     {
-        _animator = GetComponent<Animator>();
         rotationSpeed = 14.0f;
+        _animator = GetComponent<Animator>();
+        _animator.SetBool("PowerOn", true);
         InitializeGuidance();
-        StartCoroutine(GreetUser(10.0f, "Hello friend, please find the scene depickted on my ledt hand side"));
+        StartCoroutine(GreetUser(5.0f, "Hello friend, please find the scene depickted on my ledt hand side"));
     }
     public IEnumerator GreetUser(float waitTime, string message)
     {
@@ -32,9 +41,15 @@ public class Guide : Guidance
     }
     void Update()
     {
-        if (!guiding)
+        if(!guiding)
         {
+            image.material = red;
             return;
+        }
+        else
+        {
+            image.material = blue;
+
         }
         if (wayPointIndex < wayPoints.Count)
         {
@@ -49,15 +64,6 @@ public class Guide : Guidance
             IdleUpdate();
         }
         LookAtDir(lookDir);
-        // @Simon:
-        // I put this code snippet for you as an example, basically switch between two states as follows.
-        // You can remove the region when you're done.
-        #region Test
-        if (Input.GetKeyDown(KeyCode.F1))
-            _animator.SetBool("PowerOn", true);
-        if (Input.GetKeyDown(KeyCode.F2))
-            _animator.SetBool("PowerOn", false);
-        #endregion
     }
     public void IdleUpdate()
     {
@@ -72,13 +78,10 @@ public class Guide : Guidance
         }
         else
         {
-            if (!_animator.GetBool("PowerOn")) {
-                _animator.SetBool("PowerOn", true);
-            }
             MoveTowards(Camera.main.transform.position);
         }
     }
-
+    //If the User builds up to much distance eve is supposed to wait for them
     public bool WaitForPlayer()
     {
         //if distance to guide is too big wait for the player and look at him / Maby wave at the player
@@ -93,12 +96,12 @@ public class Guide : Guidance
         return false;
 
     }
-
+    // Iterates to the nex wayypoint in the list of thecurrent path
     public override void PersueWaypoint()
     {
         state = GuideState.Guiding;
         Vector3 wayPointPos = wayPoints[wayPointIndex].transform.position;
-        wayPointPos.y += 0.2f;
+        wayPointPos.y += 0.4f;
         MoveTowards(wayPointPos);
         Vector3 dir = (gameObject.transform.position - wayPointPos).normalized;
 
@@ -107,12 +110,16 @@ public class Guide : Guidance
 
         if (wayPointPos.Equals(gameObject.transform.position))
         {
-            if (lastAnchor.children.Count == 0) {
-                GuidanceComplete(5.0f, "Target Destination Reached");
+            // TODO not 100 corrext if not all points are detected in the future throw event and check if there are other anchors to detect instead
+            if (wayPointIndex >= wayPoints.Count)
+            {
+                StartCoroutine(DestinationReached());
             }
             WaypointRached();
+         
         }
     }
+    // Slowly move the paarent game object towards a position provided (Called on Update)
     public void MoveTowards(Vector3 target)
     {
         Vector3 pos = Vector3.MoveTowards(gameObject.transform.position, target, movementSpeed * Time.deltaTime);
@@ -120,24 +127,46 @@ public class Guide : Guidance
         //pos.y = -0.1f;
         gameObject.transform.position = pos;
     }
-    public IEnumerator GuidanceComplete(float waitTime, string message)
+
+    // TODO not used
+    public override void GuidanceComplete()
     {
-        SpeechManager.Instance.Speak(message);
-        yield return new WaitForSeconds(waitTime);
-        _animator.SetBool("PowerOn", false);
-
-
+        //guiding = false;
+        //lookDir = (Camera.main.transform.position - gameObject.transform.position).normalized;
     }
-    public override void GuidanceComplete() { 
-        
-    }
+
+    //Called by parent class after user was greeted greeted
     public void StartGuidance()
     {
         guiding = true;
-        startGuidance.Invoke();
+       // startGuidance.Invoke();
     }
+
+    // Called by parent class when the startpoin of the current path was found
     public override void FirstAnchorFound()
     {
+        // Wait till introduction is finished first
+        if (guiding)
+        {
+            AnnounceGuidanceStart();
+        }
+        else 
+        {
+            //startGuidance.AddListener(AnnounceGuidanceStart);
+        }
+       
+
+    }
+
+    //Supposed to be called when the last way point of the current path was found
+    public IEnumerator DestinationReached() {
+        SpeechManager.Instance.Speak("Destination Reached. Shutting down.");
+        yield return new WaitForSeconds(3.0f);
         _animator.SetBool("PowerOn", false);
+    }
+
+    // Tells the user to follow them once eve starts moving towards a waypoint
+    public void AnnounceGuidanceStart() {
+        SpeechManager.Instance.Speak("Let´s go follow me");
     }
 }

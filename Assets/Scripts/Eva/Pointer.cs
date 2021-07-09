@@ -34,6 +34,8 @@ public class Pointer : Guidance
             ArrowIdle();
         }
     }
+    // TODO Designwise terrible
+    // arrow stands still when no target exist
     public void ArrowIdle()
     {
         gameObject.GetComponent<Renderer>().enabled = false;
@@ -48,6 +50,7 @@ public class Pointer : Guidance
         Debug.Log("Guidance Complete guiding false");
         //guiding = false;
     }
+    // points to the currently persued wypoit and procedes to the next one once the user is close enough to the current one
     public override void PersueWaypoint()
     {
         gameObject.GetComponent<Renderer>().enabled = true;
@@ -72,7 +75,7 @@ public class Pointer : Guidance
     }
     public override void FirstAnchorFound()
     {
-
+       
     }
 
 }

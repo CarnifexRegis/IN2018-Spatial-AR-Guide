@@ -18,8 +18,7 @@ public abstract class Guidance : MonoBehaviour
     public GuideState state = GuideState.Idle;
     string waiting = "Room1";
     public Vector3 lookDir;
-    public Anchor lastAnchor = null;
-
+    Anchor lastAnchor = null;
 
     //TODO prob special method for every child
     public void InitializeGuidance()
@@ -57,6 +56,7 @@ public abstract class Guidance : MonoBehaviour
             {
                 wayPoints.Add(value);
                 Debug.Log("Initial Guiding True");
+                FirstAnchorFound();
                 //guiding = true;
             }
             else
@@ -73,7 +73,6 @@ public abstract class Guidance : MonoBehaviour
                 //guiding = true;
                 Debug.Log("following Guiding True");
                 lastAnchor = lastAnchor.children[0];
-              
             }
 
         }
