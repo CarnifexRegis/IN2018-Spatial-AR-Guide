@@ -69,7 +69,8 @@ public class Pointer : Guidance
         float distance = Vector2.Distance(new Vector2(wayPointPos.x, wayPointPos.z), new Vector2(Camera.main.transform.position.x, Camera.main.transform.position.z));
         if (distance <= detectionDistance)
         {
-            WaypointRached();
+            //WaypointRached();
+            wayPointIndex++;
             //wayPointIndex %= (wayPoints.Count);
         }
     }
@@ -77,10 +78,12 @@ public class Pointer : Guidance
     {
        
     }
-
+    // currently does not need to be an enumberator but for parent consistancy
     public override IEnumerator WaypointRached()
+       
     {
-        yield return new WaitForSeconds(1.0f);
+        
+        yield return new WaitForSeconds(0.0f);
     }
 
 }

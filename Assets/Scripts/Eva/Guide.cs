@@ -31,8 +31,9 @@ public class Guide : Guidance
         _animator.SetBool("PowerOn", true);
         InitializeGuidance();
        
-        StartCoroutine(GreetUser(5.0f, "Hello friend, please find the scene depickted on my left hand side"));
+        StartCoroutine(GreetUser(7.0f, "Hello friend, please find the scene depickted on my left hand side"));
     }
+    
     public IEnumerator GreetUser(float waitTime, string message)
     {
         SpeechManager.Instance.Speak(message);
@@ -45,12 +46,13 @@ public class Guide : Guidance
     {
         if(!guiding)
         {
-            image.material = red;
+            //Setting the material colour can be a nice way to do small debugging tasks
+           //image.material = red;
             return;
         }
         else
         {
-            image.material = blue;
+           // image.material = blue;
 
         }
         if (wayPointIndex < wayPoints.Count)
@@ -63,6 +65,7 @@ public class Guide : Guidance
         }
         else
         {
+            
             IdleUpdate();
         }
         LookAtDir(lookDir);
@@ -114,6 +117,7 @@ public class Guide : Guidance
 
 
     }
+
     // Iterates to the nex wayypoint in the list of thecurrent path
     public override void PersueWaypoint()
     {
@@ -129,11 +133,12 @@ public class Guide : Guidance
         if (wayPointPos.Equals(gameObject.transform.position))
         {
             wayPointIndex++;
-            // StartCoroutine(WaypointRached());
+           //StartCoroutine(WaypointRached());
 
 
         }
     }
+    //This method is used to talk to the user once a waypoint with tex assigned was reached Currently it needs to be debugged and wont be part of the demo
     public override  IEnumerator WaypointRached() {
         Debug.Log("ReachedWaypoint");
         if (lastAnchor != null&&lastAnchor?.text!=null)
@@ -141,7 +146,7 @@ public class Guide : Guidance
             SpeechManager.Instance.Speak(lastAnchor.text);
             yield return new WaitUntil(() => SpeechManager.Instance._audioSource.isPlaying == false);
         }
-        yield return new WaitForSeconds(0.5f);
+        yield return new WaitForSeconds(5.0f);
         wayPointIndex++;
         if (wayPointIndex >= wayPoints.Count)
         {
@@ -174,9 +179,10 @@ public class Guide : Guidance
        // startGuidance.Invoke();
     }
 
-    // Called by parent class when the startpoin of the current path was found
+    // Called by parent class when the startpoin of the current path was found not yet implemented
     public override void FirstAnchorFound()
     {
+        
         // Wait till introduction is finished first
         if (guiding)
         {
@@ -199,7 +205,7 @@ public class Guide : Guidance
 
     // Tells the user to follow them once eve starts moving towards a waypoint
     public void AnnounceGuidanceStart() {
-        Debug.Log("Annonce Start"); 
+        //Debug.Log("Annonce Start"); 
         //SpeechManager.Instance.Speak("Let´s go follow me");
     }
 }

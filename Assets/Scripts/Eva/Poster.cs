@@ -9,7 +9,7 @@ public class Poster : MonoBehaviour
     public GameObject canvas;
     void Update()
     {
-        gameObject.transform.position = guide.transform.position + new Vector3(1.2f,0.1f,0.0f);
+        gameObject.transform.position = guide.transform.position + new Vector3(1.6f,0.1f,0.0f);
         gameObject.transform.rotation = guide.transform.rotation;
     }
     public void SetCanvasActive(bool active) {
