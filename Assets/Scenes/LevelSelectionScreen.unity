@@ -1171,7 +1171,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 100cb008199b9844f9867dcc1fa76154, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ARFoundationCameraTree: {fileID: 7557246849223751478, guid: eaecf709c40eb0e4ebb4fa3903cc78d4,
+  ARFoundationCameraTree: {fileID: 7557246849223751478, guid: 29f895a675b20e241b2adcdf049bdf72,
     type: 3}
   EditorCameraTree: {fileID: 1021716473337512, guid: 5f9f5b7298177234ba79a3f2ce611872,
     type: 3}

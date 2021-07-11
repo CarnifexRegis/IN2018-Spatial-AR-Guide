@@ -10,10 +10,19 @@ public class Pointer : Guidance
     public Material active;
     public Material notActive;
     public float detectionDistance = 1.0f;
+    bool pauseTracking = false;
     void Start()
     {
         rotationSpeed = 14.0f;
         InitializeGuidance();
+        SpeechManager.Instance._audioSource = gameObject.GetComponent<AudioSource>();
+        StartCoroutine(GreetUser(7.0f, "Hello friend, please find the scene depickted on my left hand side"));
+    }
+
+    public IEnumerator GreetUser(float waitTime, string message)
+    {
+        SpeechManager.Instance.Speak(message);
+        yield return new WaitForSeconds(waitTime);
     }
 
     // Update is called once per frame
@@ -67,23 +76,38 @@ public class Pointer : Guidance
         LookAtDir(lookDir);
 
         float distance = Vector2.Distance(new Vector2(wayPointPos.x, wayPointPos.z), new Vector2(Camera.main.transform.position.x, Camera.main.transform.position.z));
-        if (distance <= detectionDistance)
+        if (distance <= detectionDistance && !pauseTracking)
         {
-            //WaypointRached();
-            wayPointIndex++;
+            pauseTracking = true;
+            StartCoroutine(WaypointRached());
+            // wayPointIndex++;
             //wayPointIndex %= (wayPoints.Count);
         }
     }
+
+    public override  IEnumerator WaypointRached() {
+        Debug.Log("ReachedWaypoint");
+        if(textsToSpeak[wayPointIndex] != "")
+        {
+            SpeechManager.Instance.Speak(textsToSpeak[wayPointIndex]);
+            yield return new WaitUntil(() => SpeechManager.Instance._audioSource.isPlaying == false);
+        }
+
+        yield return new WaitForSeconds(0.2f);
+        wayPointIndex++;
+
+        // state = GuideState.Waiting;
+        pauseTracking = false;
+        if (wayPointIndex >= wayPoints.Count)
+        {
+            // StartCoroutine(DestinationReached());
+        }
+        Debug.Log("waypoint counter "+wayPointIndex);
+    }
+
     public override void FirstAnchorFound()
     {
        
     }
-    // currently does not need to be an enumberator but for parent consistancy
-    public override IEnumerator WaypointRached()
-       
-    {
-        
-        yield return new WaitForSeconds(0.0f);
-    }
-
+    
 }

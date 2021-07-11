@@ -53,9 +53,9 @@ public class Guide : Guidance
            // image.material = blue;
 
         }
-        if (wayPointIndex < wayPoints.Count && state != GuideState.Explaining)
+        if (wayPointIndex < wayPoints.Count )
         {
-            if (!WaitForPlayer())
+            if (!WaitForPlayer() && state != GuideState.Explaining )
             {
                 PersueWaypoint();
             }
