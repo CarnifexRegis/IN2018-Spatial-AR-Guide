@@ -168,6 +168,7 @@ public class AnchorWatcher : MonoBehaviour
             }
         }
         spawnedGameObject[key] = SpawnNewAnchoredObject(worldPos, worldRot, cloudAnchor);
+        print("Found key "+key);
         guidance.AddNewFoundAnchor(key, spawnedGameObject[key]);
         // if (spawnedObject == null)
         // {

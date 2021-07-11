@@ -21,8 +21,6 @@ public class Guide : Guidance
     public RawImage image;
     public Poster poster;
 
-
-
     private Animator _animator;
     void Start()
     {
@@ -55,7 +53,7 @@ public class Guide : Guidance
            // image.material = blue;
 
         }
-        if (wayPointIndex < wayPoints.Count)
+        if (wayPointIndex < wayPoints.Count && state != GuideState.Explaining)
         {
             if (!WaitForPlayer())
             {
@@ -63,7 +61,7 @@ public class Guide : Guidance
             }
 
         }
-        else
+        else if (state != GuideState.Explaining)
         {
             
             IdleUpdate();
@@ -132,8 +130,9 @@ public class Guide : Guidance
 
         if (wayPointPos.Equals(gameObject.transform.position))
         {
-            wayPointIndex++;
-           //StartCoroutine(WaypointRached());
+            state = GuideState.Explaining;
+            StartCoroutine(WaypointRached());
+            // wayPointIndex++;
 
 
         }
@@ -141,18 +140,20 @@ public class Guide : Guidance
     //This method is used to talk to the user once a waypoint with tex assigned was reached Currently it needs to be debugged and wont be part of the demo
     public override  IEnumerator WaypointRached() {
         Debug.Log("ReachedWaypoint");
-        if (lastAnchor != null&&lastAnchor?.text!=null)
+        if(textsToSpeak[wayPointIndex] != "")
         {
-            SpeechManager.Instance.Speak(lastAnchor.text);
+            SpeechManager.Instance.Speak(textsToSpeak[wayPointIndex]);
             yield return new WaitUntil(() => SpeechManager.Instance._audioSource.isPlaying == false);
         }
-        yield return new WaitForSeconds(5.0f);
+
+        yield return new WaitForSeconds(0.2f);
         wayPointIndex++;
+
+        state = GuideState.Waiting;
         if (wayPointIndex >= wayPoints.Count)
         {
             StartCoroutine(DestinationReached());
         }
-
         Debug.Log("waypoint counter "+wayPointIndex);
     }
     // Slowly move the paarent game object towards a position provided (Called on Update)
@@ -206,6 +207,6 @@ public class Guide : Guidance
     // Tells the user to follow them once eve starts moving towards a waypoint
     public void AnnounceGuidanceStart() {
         //Debug.Log("Annonce Start"); 
-        //SpeechManager.Instance.Speak("Let´s go follow me");
+        //SpeechManager.Instance.Speak("Letï¿½s go follow me");
     }
 }

@@ -10,6 +10,7 @@ public abstract class Guidance : MonoBehaviour
     }
     public List<GameObject> wayPoints = new List<GameObject>();
     public Dictionary<string, GameObject> wayPointsDict = new Dictionary<string, GameObject>();
+    public List<string> textsToSpeak = new List<string>();
     public AnchorStore anchorStore;
     //public bool guiding = false;
     public int wayPointIndex = 0;
@@ -49,9 +50,10 @@ public abstract class Guidance : MonoBehaviour
         wayPointsDict.Add(key, value);
         if (lastAnchor == null)
         {
-            lastAnchor = anchorStore.anchor;
             if (key.Equals(anchorStore.anchor.name))
             {
+                lastAnchor = anchorStore.anchor;
+                textsToSpeak.Add(lastAnchor.text);
                 wayPoints.Add(value);
                 Debug.Log("Initial Guiding True");
                 FirstAnchorFound();
@@ -65,12 +67,25 @@ public abstract class Guidance : MonoBehaviour
         }
         else
         {
+            CheckAgain:
             if (key.Equals(lastAnchor.children[0].name))
             {
                 wayPoints.Add(value);
                 //guiding = true;
                 Debug.Log("following Guiding True");
                 lastAnchor = lastAnchor.children[0];
+                textsToSpeak.Add(lastAnchor.text);
+            }
+            else if (wayPointsDict[lastAnchor.children[0].name] != null)
+            {
+                wayPoints.Add(wayPointsDict[lastAnchor.children[0].name]);
+                lastAnchor = lastAnchor.children[0];
+                textsToSpeak.Add(lastAnchor.text);
+                goto CheckAgain;
+            }
+            else
+            {
+                return;
             }
 
         }
