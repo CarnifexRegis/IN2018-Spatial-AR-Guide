@@ -419,7 +419,7 @@ public class AnchorAdder : InputInteractionBase
         CloudSpatialAnchor cloudAnchor = cna.CloudAnchor;
 
         // In this sample app we delete the cloud anchor explicitly, but here we show how to set an anchor to expire automatically
-        cloudAnchor.Expiration = DateTimeOffset.Now.AddDays(7);
+        cloudAnchor.Expiration = DateTimeOffset.Now.AddDays(14);
 
         while (!CloudManager.IsReadyForCreate)
         {

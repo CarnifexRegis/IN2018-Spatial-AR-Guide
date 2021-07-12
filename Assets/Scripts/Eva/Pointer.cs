@@ -11,12 +11,15 @@ public class Pointer : Guidance
     public Material notActive;
     public float detectionDistance = 1.0f;
     bool pauseTracking = false;
+    public GameObject poster;
+    bool done = false;
     void Start()
     {
         rotationSpeed = 14.0f;
         InitializeGuidance();
         SpeechManager.Instance._audioSource = gameObject.GetComponent<AudioSource>();
-        StartCoroutine(GreetUser(7.0f, "Hello friend, please find the scene depickted on my left hand side"));
+        poster.SetActive(true);
+        StartCoroutine(GreetUser(7.0f, "Hello friend, please find the scene displayed on top"));
     }
 
     public IEnumerator GreetUser(float waitTime, string message)
@@ -100,14 +103,22 @@ public class Pointer : Guidance
         pauseTracking = false;
         if (wayPointIndex >= wayPoints.Count)
         {
-            // StartCoroutine(DestinationReached());
+            StartCoroutine(DestinationReached());
         }
         Debug.Log("waypoint counter "+wayPointIndex);
     }
 
+
+    public IEnumerator DestinationReached() {
+        SpeechManager.Instance.Speak("We hope you enjoyed the tour and have a good time at our dorm");
+        yield return new WaitForSeconds(5.0f);
+        // _animator.SetBool("PowerOn", false);
+    }
+
     public override void FirstAnchorFound()
     {
-       
+       poster.SetActive(false);
+       SpeechManager.Instance.Speak("The Scene has been found. Now you can follow me");
     }
     
 }

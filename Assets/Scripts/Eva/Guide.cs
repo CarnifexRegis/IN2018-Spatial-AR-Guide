@@ -22,6 +22,7 @@ public class Guide : Guidance
     public Poster poster;
 
     private Animator _animator;
+    bool done = false;
     void Start()
     {
         rotationSpeed = 14.0f;
@@ -34,9 +35,17 @@ public class Guide : Guidance
     
     public IEnumerator GreetUser(float waitTime, string message)
     {
+        poster.gameObject.SetActive(true);
         SpeechManager.Instance.Speak(message);
         yield return new WaitForSeconds(waitTime);
-        StartGuidance();
+        if(done)
+        {
+            StartGuidance();
+        }
+        else 
+        {
+            done = true;
+        }
 
 
     }
@@ -53,9 +62,9 @@ public class Guide : Guidance
            // image.material = blue;
 
         }
-        if (wayPointIndex < wayPoints.Count )
+        if (wayPointIndex < wayPointsDict.Keys.Count && state != GuideState.Explaining)
         {
-            if (!WaitForPlayer() && state != GuideState.Explaining )
+            if (!WaitForPlayer())
             {
                 PersueWaypoint();
             }
@@ -63,8 +72,12 @@ public class Guide : Guidance
         }
         else if (state != GuideState.Explaining)
         {
-            
             IdleUpdate();
+        }
+        else if (state == GuideState.Explaining)
+        {
+            Vector3 dir = (gameObject.transform.position - Camera.main.transform.position).normalized;
+            lookDir = dir;
         }
         LookAtDir(lookDir);
     }
@@ -128,7 +141,7 @@ public class Guide : Guidance
         lookDir = dir;
 
 
-        if (wayPointPos.Equals(gameObject.transform.position))
+        if (wayPointPos.Equals(gameObject.transform.position) && state != GuideState.Explaining)
         {
             state = GuideState.Explaining;
             StartCoroutine(WaypointRached());
@@ -149,13 +162,14 @@ public class Guide : Guidance
         yield return new WaitForSeconds(0.2f);
         wayPointIndex++;
 
-        state = GuideState.Waiting;
-        if (wayPointIndex >= wayPoints.Count)
+        state = GuideState.Guiding;
+        if (wayPointIndex >= wayPointsDict.Keys.Count)
         {
             StartCoroutine(DestinationReached());
         }
         Debug.Log("waypoint counter "+wayPointIndex);
     }
+
     // Slowly move the paarent game object towards a position provided (Called on Update)
     public void MoveTowards(Vector3 target)
     {
@@ -175,8 +189,9 @@ public class Guide : Guidance
     //Called by parent class after user was greeted greeted
     public void StartGuidance()
     {
-        guiding = true;
-        poster.SetCanvasActive(false);
+        
+        poster.gameObject.SetActive(false);
+        StartCoroutine(AnnounceGuidanceStart());
        // startGuidance.Invoke();
     }
 
@@ -185,12 +200,13 @@ public class Guide : Guidance
     {
         
         // Wait till introduction is finished first
-        if (guiding)
+        if (done)
         {
-            AnnounceGuidanceStart();
+            StartGuidance();
         }
         else 
         {
+            done = true;
             //startGuidance.AddListener(AnnounceGuidanceStart);
         }
        
@@ -199,14 +215,16 @@ public class Guide : Guidance
 
     //Supposed to be called when the last way point of the current path was found
     public IEnumerator DestinationReached() {
-        SpeechManager.Instance.Speak("Destination Reached. Shutting down.");
-        yield return new WaitForSeconds(2.0f);
+        SpeechManager.Instance.Speak("We hope you enjoyed the tour and have a good time at our dorm");
+        yield return new WaitForSeconds(5.0f);
         _animator.SetBool("PowerOn", false);
     }
 
     // Tells the user to follow them once eve starts moving towards a waypoint
-    public void AnnounceGuidanceStart() {
+    public IEnumerator AnnounceGuidanceStart() {
         //Debug.Log("Annonce Start"); 
-        //SpeechManager.Instance.Speak("Let�s go follow me");
+        SpeechManager.Instance.Speak("The Scene has been found. Now you can follow me");
+        yield return new WaitForSeconds(5.0f);
+        guiding = true;
     }
 }
