@@ -5,7 +5,10 @@
 ## Resources
 In order to run the app, both an Azure Spatial Anchor and an Azure Speech resources need to be created. Verification info (e.g. id, key, service region) for Spatial Anchors needs to be inserted into Assets/AzureSpatialAnchors.SDK/Resources/SpatialAnchorConfig.asset and Speech Services info needs to be inserted into the corresponding field of *SpeechManager* in *AnchorWatcher* scene.
 
-// TODO: Add images
+<p align="center">
+  <img width="450" height="200" src=https://github.com/CarnifexRegis/IN2018-Spatial-AR-Guide/blob/master/Screenshots/SpatialAnchors.PNG "Spatial Anchors Configuration">
+  <img width="450" height="200" src=https://github.com/CarnifexRegis/IN2018-Spatial-AR-Guide/blob/master/Screenshots/SpeechServices.PNG "Speech Services Configuration">
+</p>
 
 ### Azure Spatial Anchors
 
