@@ -3,7 +3,7 @@
 TODO: Project description
 
 ## Resources
-To run the App both a Azure Cloud Anchor and Azure Speech resource needs to be created.
+To run the App both an Azure Cloud Anchor and a Azure Speech resource need to be created.
 Verification info for Cloud Anchors need to be inserted into Assets/AzureSpatialAnchors.SDK/Resources and Azure Speech info needs to be inserted into 
 the AnchorWatcher Scene in the SpeechManager
 
